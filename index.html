@@ -760,6 +760,12 @@
         function recognizeIntent(message) {
             const msgLower = message.toLowerCase();
             
+            // If we're in the middle of a conversation, treat user input differently
+            if (conversationState.intent === 'search_facility') {
+                // We're already in a search conversation, so any input should be treated as continuing the search
+                return 'search_facility';
+            }
+            
             // Basic small talk patterns that we handle normally
             const basicPatterns = {
                 greeting: ['שלום', 'היי', 'הי', 'בוקר טוב', 'ערב טוב', 'לילה טוב'],
@@ -781,7 +787,7 @@
             }
 
             // Sport facility related patterns
-            const searchPatterns = ['מחפש', 'רוצה', 'אני רוצה', 'צריך', 'איפה', 'למצוא', 'תמצא לי', 'תחפש לי'];
+            const searchPatterns = ['מחפש', 'מחפשת', 'רוצה', 'אני רוצה', 'צריך', 'צריכה', 'איפה', 'למצוא', 'תמצא לי', 'תחפש לי'];
             const facilityPatterns = [
                 'אולם', 'בריכה', 'מגרש', 'ספורט', 'כדורגל', 'טניס', 'כדורסל', 'כדורעף',
                 'שחייה', 'התעמלות', 'כושר', 'פיטנס', 'ריצה', 'אימון', 'אימונים', 'פעילות',
@@ -801,6 +807,8 @@
         }
 
         async function handleSmallTalk(intent, message) {
+            console.log('🎭 handleSmallTalk called with:', intent); // Debug
+            
             const responses = {
                 greeting: 'שלום וברכה! 😊 איך אפשר לעזור לך למצוא מתקן ספורט היום?',
                 thanks: 'תמיד בשמחה! 🙌 אני כאן אם תצטרך מתקן ספורט כלשהו.',
@@ -830,6 +838,7 @@
             
             // Handle weather-specific queries
             if (intent === 'weather_specific') {
+                console.log('🌤️ Handling weather query'); // Debug
                 const location = findLocationInData(message);
                 const timeFromMessage = extractTimeFromMessage(message) || 'עכשיו';
                 
@@ -867,11 +876,14 @@
             
             // Handle non-sports related questions
             if (intent === 'not_sports_related') {
+                console.log('🚫 Returning not-sports response'); // Debug
                 return notSportsResponse;
             }
             
             // Return basic responses for recognized intents
-            return responses[intent] || notSportsResponse;
+            const basicResponse = responses[intent];
+            console.log('📝 Returning basic response for:', intent, basicResponse ? 'Found' : 'Not found'); // Debug
+            return basicResponse || notSportsResponse;
         }
 
         function findLocationInData(message) {
