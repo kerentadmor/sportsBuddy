@@ -1302,12 +1302,18 @@
             return { compatible: true, note: null };
         }
 
-        function displayPaginatedResults(facilities, startFromBeginning = true) {
+            function displayPaginatedResults(facilities, startFromBeginning = true) {
             if (startFromBeginning) {
                 conversationState.searchResults = facilities;
                 conversationState.currentPage = 0;
+        }
+    
+            if (!conversationState.searchResults || conversationState.searchResults.length === 0) {
+                addMessage('לא מצאתי מתקנים להצגה. 😕', 'bot');
+                return;
             }
-            
+    
+                
             const isFirstPage = conversationState.currentPage === 0;
             const pageSize = isFirstPage ? conversationState.resultsPerPage : conversationState.showMorePerPage;
             
