@@ -759,12 +759,16 @@
         // Simplified intent recognition - sports vs non-sports
         function recognizeIntent(message) {
             const msgLower = message.toLowerCase();
+            console.log('🧠 Conversation state:', conversationState.intent); // Debug conversation state
             
             // If we're in the middle of a conversation, treat user input differently
             if (conversationState.intent === 'search_facility') {
+                console.log('✅ In middle of search conversation - continuing as search_facility'); // Debug
                 // We're already in a search conversation, so any input should be treated as continuing the search
                 return 'search_facility';
             }
+            
+            console.log('🔍 No active conversation, analyzing message:', msgLower); // Debug
             
             // Basic small talk patterns that we handle normally
             const basicPatterns = {
@@ -781,6 +785,7 @@
             for (const [intent, patterns] of Object.entries(basicPatterns)) {
                 for (const pattern of patterns) {
                     if (msgLower.includes(pattern)) {
+                        console.log('🎯 Found basic pattern:', pattern, '→', intent); // Debug
                         return intent;
                     }
                 }
@@ -799,9 +804,11 @@
             const hasFacilityPattern = facilityPatterns.some(p => msgLower.includes(p));
             
             if (hasSearchPattern || hasFacilityPattern) {
+                console.log('🏃‍♂️ Found sports pattern → search_facility'); // Debug
                 return 'search_facility';
             }
 
+            console.log('❓ No pattern found → not_sports_related'); // Debug
             // If none of the above - it's not sports related
             return 'not_sports_related';
         }
