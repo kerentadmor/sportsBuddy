@@ -1302,46 +1302,48 @@
             return { compatible: true, note: null };
         }
 
-            function displayPaginatedResults(facilities, startFromBeginning = true) {
+        function displayPaginatedResults(facilities, startFromBeginning = true) {
             if (startFromBeginning) {
                 conversationState.searchResults = facilities;
                 conversationState.currentPage = 0;
-        }
-    
+            }
+        
             if (!conversationState.searchResults || conversationState.searchResults.length === 0) {
                 addMessage('לא מצאתי מתקנים להצגה. 😕', 'bot');
                 return;
             }
-    
-                
+        
             const isFirstPage = conversationState.currentPage === 0;
             const pageSize = isFirstPage ? conversationState.resultsPerPage : conversationState.showMorePerPage;
-            
-            const startIndex = isFirstPage ? 0 : conversationState.resultsPerPage + (conversationState.currentPage - 1) * conversationState.showMorePerPage;
+        
+            const startIndex = isFirstPage
+                ? 0
+                : conversationState.resultsPerPage + (conversationState.currentPage - 1) * conversationState.showMorePerPage;
+        
             const endIndex = startIndex + pageSize;
             const currentPageResults = conversationState.searchResults.slice(startIndex, endIndex);
-            
+        
             if (currentPageResults.length === 0) {
                 addMessage('זה כל המתקנים שמצאתי! 😊', 'bot');
                 return;
             }
-            
+        
             if (conversationState.currentPage === 0) {
                 const totalResults = conversationState.searchResults.length;
-                let resultsMessage = totalResults === 1 ? 
+                let resultsMessage = totalResults === 1 ?
                     '🎯 מצאתי את המתקן המושלם בשבילך:' :
                     `🎯 מצאתי ${totalResults} מתקנים שמתאימים לבקשתך. מציג ${Math.min(3, totalResults)} ראשונים:`;
                 addMessage(resultsMessage, 'bot');
             }
-            
+        
             currentPageResults.forEach((facility, index) => {
                 setTimeout(() => {
                     addMessage(createFacilityCard(facility), 'bot');
                 }, index * 200);
             });
-            
+        
             const remainingResults = conversationState.searchResults.length - endIndex;
-            
+        
             if (remainingResults > 0) {
                 setTimeout(() => {
                     const showMoreButton = `
@@ -1355,9 +1357,10 @@
                     addMessage(showMoreButton, 'bot');
                 }, currentPageResults.length * 200 + 500);
             }
-            
+        
             conversationState.currentPage++;
         }
+
 
         function showMoreResults() {
             displayPaginatedResults(conversationState.searchResults, false);
