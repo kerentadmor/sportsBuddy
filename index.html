@@ -1516,7 +1516,12 @@
                 input.value = '';
                 setTimeout(() => {
                     console.log('⏰ About to call processMessage'); // Debug
-                    processMessage(message);
+                    try {
+                        console.log('🚀 Calling processMessage now'); // Debug
+                        processMessage(message);
+                    } catch (error) {
+                        console.error('💥 Error calling processMessage:', error); // Debug
+                    }
                 }, 500);
             } else {
                 console.log('❌ Message invalid or data not loaded. Message:', message, 'DataLoaded:', isDataLoaded); // Debug
