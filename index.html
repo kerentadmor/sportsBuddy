@@ -1508,10 +1508,18 @@
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
             
+            console.log('📤 sendMessage called with:', message); // Debug
+            
             if (message && isDataLoaded) {
+                console.log('✅ Message valid, calling processMessage'); // Debug
                 addMessage(message, 'user');
                 input.value = '';
-                setTimeout(() => processMessage(message), 500);
+                setTimeout(() => {
+                    console.log('⏰ About to call processMessage'); // Debug
+                    processMessage(message);
+                }, 500);
+            } else {
+                console.log('❌ Message invalid or data not loaded. Message:', message, 'DataLoaded:', isDataLoaded); // Debug
             }
         }
 
