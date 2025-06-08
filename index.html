@@ -764,6 +764,13 @@
             // If we're in the middle of a conversation, treat user input differently
             if (conversationState.intent === 'search_facility') {
                 console.log('✅ In middle of search conversation - continuing as search_facility'); // Debug
+                
+                // BUT - check if they're asking for "more results" first
+                if (msgLower.includes('עוד') || msgLower.includes('הצג עוד') || msgLower.includes('עוד מתקנים')) {
+                    console.log('📋 User wants more results - returning show_more'); // Debug
+                    return 'show_more';
+                }
+                
                 // We're already in a search conversation, so any input should be treated as continuing the search
                 return 'search_facility';
             }
