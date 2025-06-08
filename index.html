@@ -759,6 +759,7 @@
         // Enhanced intent recognition with comprehensive off-topic detection
         function recognizeIntent(message) {
             const msgLower = message.toLowerCase();
+            console.log('🔍 Analyzing message:', msgLower); // Debug log
             
             // Basic small talk and functionality patterns
             const basicPatterns = {
@@ -828,19 +829,25 @@
 
             // Check for basic patterns first
             for (const [intent, patterns] of Object.entries(basicPatterns)) {
-                if (patterns.some(pattern => msgLower.includes(pattern))) {
-                    return intent;
+                for (const pattern of patterns) {
+                    if (msgLower.includes(pattern)) {
+                        console.log('✅ Found basic pattern:', pattern, '→', intent);
+                        return intent;
+                    }
                 }
             }
 
             // Check for off-topic patterns with specific categories
             for (const [category, patterns] of Object.entries(offTopicPatterns)) {
-                if (patterns.some(pattern => msgLower.includes(pattern))) {
-                    return `off_topic_${category}`;
+                for (const pattern of patterns) {
+                    if (msgLower.includes(pattern)) {
+                        console.log('🚫 Found off-topic pattern:', pattern, '→', `off_topic_${category}`);
+                        return `off_topic_${category}`;
+                    }
                 }
             }
 
-            // Sport facility related patterns
+            // Sport facility related patterns (only check if no off-topic found)
             const searchPatterns = ['מחפש', 'רוצה', 'אני רוצה', 'צריך', 'איפה', 'למצוא', 'תמצא לי', 'תחפש לי'];
             const facilityPatterns = [
                 'אולם', 'בריכה', 'מגרש', 'ספורט', 'כדורגל', 'טניס', 'כדורסל', 'כדורעף',
@@ -849,12 +856,16 @@
             ];
 
             // Check if it's a sports facility search
-            if (searchPatterns.some(p => msgLower.includes(p)) || 
-                facilityPatterns.some(p => msgLower.includes(p))) {
+            const hasSearchPattern = searchPatterns.some(p => msgLower.includes(p));
+            const hasFacilityPattern = facilityPatterns.some(p => msgLower.includes(p));
+            
+            if (hasSearchPattern || hasFacilityPattern) {
+                console.log('🏃‍♂️ Found sports facility pattern → search_facility');
                 return 'search_facility';
             }
 
             // If none of the above, assume it's off-topic general
+            console.log('❓ No specific pattern found → off_topic_general');
             return 'off_topic_general';
         }
 
