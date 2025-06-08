@@ -870,6 +870,8 @@
         }
 
         async function handleSmallTalk(intent, message) {
+            console.log('🎭 handleSmallTalk called with intent:', intent); // Debug log
+            
             const responses = {
                 greeting: 'שלום וברכה! 😊 איך אפשר לעזור לך למצוא מתקן ספורט היום?',
                 thanks: 'תמיד בשמחה! 🙌 אני כאן אם תצטרך מתקן ספורט כלשהו.',
@@ -944,11 +946,16 @@
             
             // Handle all off-topic intents
             if (intent.startsWith('off_topic_')) {
-                return offTopicResponses[intent];
+                console.log('🚫 Handling off-topic intent:', intent);
+                const response = offTopicResponses[intent];
+                console.log('📝 Found response:', response ? 'Yes' : 'No');
+                return response || offTopicResponses.off_topic_general;
             }
             
             // Return basic responses for recognized intents
-            return responses[intent] || offTopicResponses.off_topic_general;
+            const response = responses[intent];
+            console.log('📝 Basic response found:', response ? 'Yes' : 'No');
+            return response || offTopicResponses.off_topic_general;
         }
 
         function findLocationInData(message) {
