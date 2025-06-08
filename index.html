@@ -756,12 +756,11 @@
             return names[timeCategory] || timeCategory;
         }
 
-        // Enhanced intent recognition with comprehensive off-topic detection
+        // Simplified intent recognition - sports vs non-sports
         function recognizeIntent(message) {
             const msgLower = message.toLowerCase();
-            console.log('🔍 Analyzing message:', msgLower); // Debug log
             
-            // Basic small talk and functionality patterns
+            // Basic small talk patterns that we handle normally
             const basicPatterns = {
                 greeting: ['שלום', 'היי', 'הי', 'בוקר טוב', 'ערב טוב', 'לילה טוב'],
                 thanks: ['תודה', 'תודה רבה', 'thanks', 'אני מודה', 'תודות'],
@@ -772,87 +771,21 @@
                 show_more: ['עוד', 'הצג עוד', 'עוד מתקנים', 'המשך', 'יותר', 'תן לי עוד']
             };
 
-            // Comprehensive off-topic detection patterns
-            const offTopicPatterns = {
-                politics: [
-                    'ראש הממשלה', 'נתניהו', 'בנט', 'לפיד', 'גנץ', 'פוליטיקה', 'בחירות', 'מפלגה', 'כנסת', 
-                    'ממשלה', 'שר', 'שרה', 'מיניסטר', 'נשיא', 'הרצוג', 'ריבלין', 'קואליציה', 'אופוזיציה',
-                    'ליכוד', 'כחול לבן', 'יש עתיד', 'מרץ', 'העבודה', 'ישראל ביתנו', 'הבית היהודי'
-                ],
-                personal_info: [
-                    'איך קוראים לי', 'מה השם שלי', 'מי אני', 'איפה אני גר', 'בן כמה אני', 'מה הגיל שלי',
-                    'איפה אני עובד', 'מה העבודה שלי', 'איפה אני לומד', 'מה אני לומד', 'איך אני נראה',
-                    'מה הטלפון שלי', 'מה האימייל שלי', 'איפה אני נמצא'
-                ],
-                general_questions: [
-                    'מה השעה', 'כמה השעה', 'איזה שעה', 'מתי זה', 'כמה זה עולה', 'איך אני מגיע ל',
-                    'איך נוסעים ל', 'מה האוטובוס', 'איזה רכבת', 'איך הדרך ל', 'איפה זה נמצא',
-                    'מה המרחק', 'כמה זמן זה לוקח', 'איך מגיעים', 'איך אני יכול להגיע'
-                ],
-                health_medical: [
-                    'כואב לי', 'יש לי כאב', 'מה לעשות עם', 'איך לרפא', 'איך לטפל', 'רופא', 'רפואה',
-                    'בית חולים', 'קופת חולים', 'ביטוח בריאות', 'תרופה', 'תרופות', 'כאב ראש',
-                    'כאב בטן', 'שפעת', 'קורונה', 'קוביד', 'חיסון', 'חיסונים'
-                ],
-                food_recipes: [
-                    'מתכון ל', 'איך מכינים', 'איך מבשלים', 'איך אופים', 'מה לבשל', 'מה לאכול',
-                    'איפה לאכול', 'מסעדה', 'מסעדות', 'אוכל', 'ארוחה', 'ארוחת', 'בישול', 'אפייה',
-                    'עוגה', 'עוגות', 'עוף', 'בשר', 'דג', 'ירקות', 'פירות', 'קינוח'
-                ],
-                technology: [
-                    'איך לתקן', 'המחשב שלי', 'הטלפון שלי', 'האפליקציה', 'הוואטסאפ', 'אינסטגרם',
-                    'פייסבוק', 'גוגל', 'יוטיוב', 'נטפליקס', 'איך להוריד', 'איך להתקין',
-                    'וירוס', 'האקר', 'סיסמה', 'סיסמאות', 'שכחתי את הסיסמה'
-                ],
-                work_study: [
-                    'איך למצוא עבודה', 'איפה לעבוד', 'איך לכתוב קורות חיים', 'ראיון עבודה',
-                    'איך ללמוד', 'איפה ללמוד', 'אוניברסיטה', 'מכללה', 'תואר', 'תארים',
-                    'מבחן', 'מבחנים', 'בגרויות', 'פסיכומטרי', 'מלגה', 'מלגות'
-                ],
-                entertainment: [
-                    'איזה סרט', 'איזה סדרה', 'מה לראות', 'קולנוע', 'תיאטרון', 'הופעה', 'קונצרט',
-                    'איזה שיר', 'איזה מוזיקה', 'זמר', 'זמרת', 'להקה', 'אמן', 'אמנית'
-                ],
-                shopping: [
-                    'איפה לקנות', 'כמה עולה', 'איזה מחיר', 'הנחה', 'הנחות', 'מבצע', 'מבצעים',
-                    'קניון', 'קניות', 'חנות', 'חנויות', 'אונליין', 'אינטרנט', 'משלוח'
-                ],
-                religion: [
-                    'מתי שבת', 'מתי חג', 'איזה חג', 'כשרות', 'כשר', 'הלכה', 'רב', 'רבנות',
-                    'בית כנסת', 'תפילה', 'תפילות', 'תורה', 'מצווה', 'בר מצווה', 'בת מצווה'
-                ],
-                news_current_events: [
-                    'מה קורה', 'מה החדשות', 'מה הלילה', 'איך השוק', 'מה בבורסה', 'דולר',
-                    'אירו', 'שקל', 'מטבע', 'חדשות', 'עדכונים', 'עדכון', 'טלוויזיה'
-                ]
-            };
-
             // Check for basic patterns first
             for (const [intent, patterns] of Object.entries(basicPatterns)) {
                 for (const pattern of patterns) {
                     if (msgLower.includes(pattern)) {
-                        console.log('✅ Found basic pattern:', pattern, '→', intent);
                         return intent;
                     }
                 }
             }
 
-            // Check for off-topic patterns with specific categories
-            for (const [category, patterns] of Object.entries(offTopicPatterns)) {
-                for (const pattern of patterns) {
-                    if (msgLower.includes(pattern)) {
-                        console.log('🚫 Found off-topic pattern:', pattern, '→', `off_topic_${category}`);
-                        return `off_topic_${category}`;
-                    }
-                }
-            }
-
-            // Sport facility related patterns (only check if no off-topic found)
+            // Sport facility related patterns
             const searchPatterns = ['מחפש', 'רוצה', 'אני רוצה', 'צריך', 'איפה', 'למצוא', 'תמצא לי', 'תחפש לי'];
             const facilityPatterns = [
                 'אולם', 'בריכה', 'מגרש', 'ספורט', 'כדורגל', 'טניס', 'כדורסל', 'כדורעף',
                 'שחייה', 'התעמלות', 'כושר', 'פיטנס', 'ריצה', 'אימון', 'אימונים', 'פעילות',
-                'מתקן', 'מתקנים', 'מקום לספורט', 'מקום להתאמן'
+                'מתקן', 'מתקנים', 'מקום לספורט', 'מקום להתאמן', 'פעילות גופנית'
             ];
 
             // Check if it's a sports facility search
@@ -860,18 +793,14 @@
             const hasFacilityPattern = facilityPatterns.some(p => msgLower.includes(p));
             
             if (hasSearchPattern || hasFacilityPattern) {
-                console.log('🏃‍♂️ Found sports facility pattern → search_facility');
                 return 'search_facility';
             }
 
-            // If none of the above, assume it's off-topic general
-            console.log('❓ No specific pattern found → off_topic_general');
-            return 'off_topic_general';
+            // If none of the above - it's not sports related
+            return 'not_sports_related';
         }
 
         async function handleSmallTalk(intent, message) {
-            console.log('🎭 handleSmallTalk called with intent:', intent); // Debug log
-            
             const responses = {
                 greeting: 'שלום וברכה! 😊 איך אפשר לעזור לך למצוא מתקן ספורט היום?',
                 thanks: 'תמיד בשמחה! 🙌 אני כאן אם תצטרך מתקן ספורט כלשהו.',
@@ -880,32 +809,24 @@
                 capabilities: 'אני צ\'אט בוט שמתמחה בעזרה עם מתקני ספורט בישראל 🤸‍♂️<br>אני יכול לעזור לך למצוא מתקנים ולבדוק מזג אוויר!'
             };
 
-            // Enhanced off-topic responses with specific guidance
-            const offTopicResponses = {
-                off_topic_politics: '<div class="off-topic-message">🗳️ אני לא מטפל בנושאים פוליטיים - זה לא התחום שלי!</div><div class="sports-suggestion">🏃‍♂️ <strong>אבל אני מומחה במציאת מתקני ספורט!</strong><br>💬 בוא נמצא לך מקום להתאמן - איזה סוג ספורט אתה אוהב?</div>',
-                
-                off_topic_personal_info: '<div class="off-topic-message">🤐 אני לא יכול לדעת מידע אישי עליך - זה לא נגיש לי!</div><div class="sports-suggestion">🏃‍♂️ <strong>אבל אני כן יכול לעזור לך למצוא מתקני ספורט!</strong><br>💬 איזה פעילות ספורט מעניינת אותך? בריכה? אולם ספורט? מגרש כדורגל?</div>',
-                
-                off_topic_general_questions: '<div class="off-topic-message">❓ זה לא בתחום ההתמחות שלי...</div><div class="sports-suggestion">🏃‍♂️ <strong>אני מתמחה במציאת מתקני ספורט בישראל!</strong><br>💡 יש לך צורך במתקן ספורט? אני אשמח לעזור לך למצוא בדיוק מה שאתה מחפש!</div>',
-                
-                off_topic_health_medical: '<div class="off-topic-message">⚕️ אני לא יכול לתת עצות רפואיות - זה לא התחום שלי ולא בטוח!</div><div class="sports-suggestion">🏃‍♂️ <strong>אבל אני כן יכול לעזור לך למצוא מקום להתאמן!</strong><br>💪 פעילות ספורט זה אחד הדברים הטובים ביותר לבריאות. איזה סוג פעילות מעניין אותך?</div>',
-                
-                off_topic_food_recipes: '<div class="off-topic-message">🍳 אני לא שף - זה לא התחום שלי!</div><div class="sports-suggestion">🏃‍♂️ <strong>אבל אני מומחה במציאת מתקני ספורט!</strong><br>💡 אחרי שתתאמן, האוכל יהיה טעים הרבה יותר! רוצה שאמצא לך מקום להתאמן?</div>',
-                
-                off_topic_technology: '<div class="off-topic-message">💻 אני לא טכנאי מחשבים - זה לא התחום שלי!</div><div class="sports-suggestion">🏃‍♂️ <strong>אני מתמחה במציאת מתקני ספורט!</strong><br>💡 אחרי כל הזמן מול המסכים, מה דעתך על קצת פעילות גופנית? איזה ספורט אתה אוהב?</div>',
-                
-                off_topic_work_study: '<div class="off-topic-message">📚 אני לא יועץ תעסוקה או לימודים - זה לא התחום שלי!</div><div class="sports-suggestion">🏃‍♂️ <strong>אבל אני יכול לעזור לך למצוא מקום להפוג לחץ ולהתאמן!</strong><br>💪 ספורט זה הדרך הטובה ביותר להתמודד עם לחץ בעבודה או בלימודים. מה דעתך?</div>',
-                
-                off_topic_entertainment: '<div class="off-topic-message">🎬 אני לא מומחה לבידור - זה לא התחום שלי!</div><div class="sports-suggestion">🏃‍♂️ <strong>אבל יש לי רעיון לבידור מעולה - ספורט!</strong><br>💡 במקום לצפות בסרט, מה דעתך להיות הכוכב? איזה פעילות ספורט מעניינת אותך?</div>',
-                
-                off_topic_shopping: '<div class="off-topic-message">🛍️ אני לא מומחה לקניות - זה לא התחום שלי!</div><div class="sports-suggestion">🏃‍♂️ <strong>אבל יש לי משהו בחינם בשבילך - מידע על מתקני ספורט!</strong><br>💡 הספורט הכי טוב זה הזול ביותר! רוצה שאמצא לך מתקן ציבורי להתאמן?</div>',
-                
-                off_topic_religion: '<div class="off-topic-message">🕊️ אני לא עוסק בנושאים דתיים - זה לא התחום שלי!</div><div class="sports-suggestion">🏃‍♂️ <strong>אבל אני יכול לעזור לך למצוא מתקני ספורט!</strong><br>💡 יש מתקנים שמתחשבים בצרכים דתיים - רוצה שאמצא לך כאלה?</div>',
-                
-                off_topic_news_current_events: '<div class="off-topic-message">📺 אני לא עוקב אחרי חדשות - זה לא התחום שלי!</div><div class="sports-suggestion">🏃‍♂️ <strong>אבל יש לי חדשות טובות - אני יכול למצוא לך מתקני ספורט מעולים!</strong><br>💪 במקום לדאוג מהחדשות, מה דעתך על קצת פעילות גופנית להירגע?</div>',
-                
-                off_topic_general: '<div class="off-topic-message">🤔 זה לא ממש בתחום ההתמחות שלי...</div><div class="sports-suggestion">🏃‍♂️ <strong>אני SportsBuddy - הבוט שהכי טוב במציאת מתקני ספורט בישראל!</strong><br>💡 יש לך צורך במתקן ספורט? זה מה שאני הכי אוהב לעזור בו! איזה פעילות מעניינת אותך?</div>'
-            };
+            // Simple response for anything not sports-related
+            const notSportsResponse = `
+                <div class="off-topic-message">
+                    🤔 אני לא יכול לעזור בזה - זה לא בתחום ההתמחות שלי!
+                </div>
+                <div class="sports-suggestion">
+                    🏃‍♂️ <strong>אני SportsBuddy - הבוט שמתמחה במציאת מתקני ספורט בישראל!</strong><br><br>
+                    💡 <strong>אני יכול לעזור לך למצוא:</strong><br>
+                    🏊‍♂️ בריכות שחייה<br>
+                    ⚽ מגרשי כדורגל<br>
+                    🏀 מגרשי כדורסל<br>
+                    🏋️‍♂️ אולמות ספורט וכושר<br>
+                    🎾 מגרשי טניס<br>
+                    ועוד הרבה מתקנים...<br><br>
+                    💬 <strong>פשוט כתוב מה אתה מחפש!</strong><br>
+                    לדוגמה: "בריכה בתל אביב" או "מגרש כדורגל בחיפה"
+                </div>
+            `;
             
             // Handle weather-specific queries
             if (intent === 'weather_specific') {
@@ -944,18 +865,13 @@
                 return null;
             }
             
-            // Handle all off-topic intents
-            if (intent.startsWith('off_topic_')) {
-                console.log('🚫 Handling off-topic intent:', intent);
-                const response = offTopicResponses[intent];
-                console.log('📝 Found response:', response ? 'Yes' : 'No');
-                return response || offTopicResponses.off_topic_general;
+            // Handle non-sports related questions
+            if (intent === 'not_sports_related') {
+                return notSportsResponse;
             }
             
             // Return basic responses for recognized intents
-            const response = responses[intent];
-            console.log('📝 Basic response found:', response ? 'Yes' : 'No');
-            return response || offTopicResponses.off_topic_general;
+            return responses[intent] || notSportsResponse;
         }
 
         function findLocationInData(message) {
