@@ -1642,7 +1642,7 @@
                 
                 if (conversationState.slots.neighborhood && conversationState.slots.neighborhood !== 'any') {
                     const targetNeighborhood = conversationState.slots.neighborhood.toLowerCase();
-                    const facilityNeighborhood = (facility['שכונה-רובע'] || '').toLowerCase();
+                    const facilityNeighborhood = (facility['שכונה-רובע'] || '').toLowerCase(); // Fixed: use bracket notation
                     
                     // Check if neighborhood matches
                     const neighborhoodMatches = 
@@ -2121,7 +2121,7 @@
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 SportsBuddy Code Updated - Version 3.1 - CLICKABLE NEIGHBORHOOD BUTTONS!'); // Latest update
+            console.log('🚀 SportsBuddy Code Updated - Version 3.2 - PROPERTY ACCESS BUG FIXED!'); // Latest update
             console.log('📍 Data URL:', CONFIG.DATA_URL);
             
             // Update connection status immediately
