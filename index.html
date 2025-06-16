@@ -762,6 +762,11 @@
             const msgLower = message.toLowerCase();
             console.log('🧠 Conversation state:', conversationState.intent); // Debug conversation state
             
+            // Check for English text first
+            if (isEnglishText(message)) {
+                return 'english_language';
+            }
+            
             // If we're in the middle of a conversation, treat user input differently
             if (conversationState.intent === 'search_facility') {
                 console.log('✅ In middle of search conversation - continuing as search_facility'); // Debug
@@ -821,6 +826,25 @@
             return 'not_sports_related';
         }
 
+        // Function to detect English text
+        function isEnglishText(message) {
+            // Count English letters vs Hebrew letters
+            const englishLetters = (message.match(/[a-zA-Z]/g) || []).length;
+            const hebrewLetters = (message.match(/[\u0590-\u05FF]/g) || []).length;
+            const totalLetters = englishLetters + hebrewLetters;
+            
+            // If more than 70% of letters are English, consider it English text
+            if (totalLetters > 0 && (englishLetters / totalLetters) > 0.7) {
+                return true;
+            }
+            
+            // Also check for common English words
+            const commonEnglishWords = ['hello', 'hi', 'thank', 'you', 'what', 'where', 'when', 'how', 'can', 'help', 'find', 'sport', 'pool', 'gym'];
+            const msgLower = message.toLowerCase();
+            
+            return commonEnglishWords.some(word => msgLower.includes(word));
+        }
+
         async function handleSmallTalk(intent, message) {
             console.log('🎭 handleSmallTalk called with:', intent); // Debug
             
@@ -832,22 +856,43 @@
                 capabilities: 'אני צ\'אט בוט שמתמחה בעזרה עם מתקני ספורט בישראל 🤸‍♂️<br>אני יכול לעזור לך למצוא מתקנים ולבדוק מזג אוויר!'
             };
 
-            // Simple response for anything not sports-related
+            // Handle English language detection
+            if (intent === 'english_language') {
+                return `
+                    <div class="off-topic-message">
+                        🌐 אני לא מבין אנגלית - אנא דבר איתי בעברית! 🇮🇱
+                    </div>
+                    <div class="sports-suggestion">
+                        🏃‍♂️ <strong>אני SportsBuddy - הבוט שמתמחה במציאת מתקני ספורט בישראל!</strong><br><br>
+                        💬 <strong>דוגמאות בעברית:</strong><br>
+                        🏊‍♂️ "אני מחפש בריכה בתל אביב"<br>
+                        ⚽ "איפה יש מגרש כדורגל בחיפה?"<br>
+                        🏀 "אולם ספורט ברחובות"<br>
+                        🌤️ "מה מזג האוויר בירושלים?"<br><br>
+                        💡 <strong>פשוט כתוב מה אתה מחפש בעברית!</strong>
+                    </div>
+                `;
+            }
+
+            // Enhanced not-sports response with more specific suggestions
             const notSportsResponse = `
                 <div class="off-topic-message">
-                    🤔 אני לא יכול לעזור בזה - זה לא בתחום ההתמחות שלי!
+                    🤔 אני לא בקיא בתחום הזה - אני מתמחה רק במתקני ספורט בישראל!
                 </div>
                 <div class="sports-suggestion">
-                    🏃‍♂️ <strong>אני SportsBuddy - הבוט שמתמחה במציאת מתקני ספורט בישראל!</strong><br><br>
+                    🏃‍♂️ <strong>אני SportsBuddy - הבוט שעוזר למצוא מתקני ספורט ופעילות גופנית!</strong><br><br>
                     💡 <strong>אני יכול לעזור לך למצוא:</strong><br>
-                    🏊‍♂️ בריכות שחייה<br>
-                    ⚽ מגרשי כדורגל<br>
-                    🏀 מגרשי כדורסל<br>
+                    🏊‍♂️ בריכות שחייה (25 מטר, 50 מטר, ילדים)<br>
+                    ⚽ מגרשי כדורגל (דשא, סינטטי, מיני פיץ')<br>
+                    🏀 מגרשי כדורסל (מקורה וחיצוני)<br>
                     🏋️‍♂️ אולמות ספורט וכושר<br>
                     🎾 מגרשי טניס<br>
-                    ועוד הרבה מתקנים...<br><br>
+                    🏐 מגרשי כדורעף (חול ורגיל)<br>
+                    🏃‍♂️ מסלולי ריצה ואתלטיקה<br>
+                    ועוד מתקנים רבים...<br><br>
                     💬 <strong>פשוט כתוב מה אתה מחפש!</strong><br>
-                    לדוגמה: "בריכה בתל אביב במרכז" או "מגרש כדורגל בחיפה באזור הדר"
+                    לדוגמה: "בריכה בתל אביב", "מגרש כדורגל בחיפה" או "אולם ספורט ברחובות"<br><br>
+                    🌤️ <strong>בונוס:</strong> אני גם בודק מזג אוויר לפעילויות חיצוניות!
                 </div>
             `;
             
@@ -891,7 +936,7 @@
             
             // Handle non-sports related questions
             if (intent === 'not_sports_related') {
-                console.log('🚫 Returning not-sports response'); // Debug
+                console.log('🚫 Returning enhanced not-sports response'); // Debug
                 return notSportsResponse;
             }
             
@@ -1594,7 +1639,7 @@
                 const intent = recognizeIntent(message);
                 hideTypingIndicator();
                 
-                if (['greeting', 'thanks', 'how_are_you', 'what_day', 'capabilities', 'weather_specific', 'off_topic'].includes(intent)) {
+                if (['greeting', 'thanks', 'how_are_you', 'what_day', 'capabilities', 'weather_specific', 'english_language', 'not_sports_related'].includes(intent)) {
                     const response = await handleSmallTalk(intent, message);
                     if (response) {
                         addMessage(response, 'bot');
@@ -1849,7 +1894,7 @@
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 SportsBuddy Code Updated - Version 2.8 - FALSE NEIGHBORHOOD DETECTION FIXED!'); // Latest update
+            console.log('🚀 SportsBuddy Code Updated - Version 2.9 - SMART RESPONSES & HEBREW ONLY!'); // Latest update
             console.log('📍 Data URL:', CONFIG.DATA_URL);
             
             // Update connection status immediately
