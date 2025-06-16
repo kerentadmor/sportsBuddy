@@ -1254,8 +1254,9 @@
         }
 
         function getMissingSlots() {
-            const required = ['location', 'neighborhood', 'facility_type', 'time', 'accessibility', 'parking', 'lighting'];
-            return required.filter(slot => conversationState.slots[slot] === null);
+            // Core required slots handled separately
+            const optionalSlots = ['time', 'accessibility', 'parking', 'lighting'];
+            return optionalSlots.filter(slot => conversationState.slots[slot] === null);
         }
 
         function getNeighborhoodsForCity(cityName) {
@@ -1273,8 +1274,22 @@
         }
 
         function askForMissingInfo(missingSlots) {
+            // Handle core slots first
             if (missingSlots.includes('location')) {
                 return 'באיזה עיר או יישוב אתה מעוניין? 🏙️';
+            }
+            if (missingSlots.includes('facility_type')) {
+                const availableTypes = getAvailableFacilityTypes();
+                let facilityPrompt = 'איזה סוג מתקן ספורט אתה מחפש? 🏃‍♂️<br><br>';
+                
+                if (availableTypes.length > 0) {
+                    facilityPrompt += '💡 <strong>דוגמאות למתקנים זמינים:</strong><br>';
+                    const examples = availableTypes.slice(0, 6);
+                    facilityPrompt += examples.map(type => `• ${type}`).join('<br>');
+                    facilityPrompt += '<br><br>💬 פשוט כתוב מה אתה מחפש!';
+                }
+                
+                return facilityPrompt;
             }
             if (missingSlots.includes('neighborhood')) {
                 const cityName = conversationState.slots.location;
@@ -1293,19 +1308,8 @@
                 
                 return neighborhoodPrompt;
             }
-            if (missingSlots.includes('facility_type')) {
-                const availableTypes = getAvailableFacilityTypes();
-                let facilityPrompt = 'איזה סוג מתקן ספורט אתה מחפש? 🏃‍♂️<br><br>';
-                
-                if (availableTypes.length > 0) {
-                    facilityPrompt += '💡 <strong>דוגמאות למתקנים זמינים:</strong><br>';
-                    const examples = availableTypes.slice(0, 6);
-                    facilityPrompt += examples.map(type => `• ${type}`).join('<br>');
-                    facilityPrompt += '<br><br>💬 פשוט כתוב מה אתה מחפש!';
-                }
-                
-                return facilityPrompt;
-            }
+            
+            // Handle optional slots
             if (missingSlots.includes('time')) {
                 return 'מתי אתה רוצה להתאמן? ⏰<br><br>💬 לדוגמה: "עכשיו", "מחר בבוקר", "היום בערב", "בעוד שעה"';
             }
@@ -1601,7 +1605,21 @@
                         addMessage(`✅ מחפש בכל השכונות`, 'bot');
                     }
                     
-                    const hasBasicInfo = conversationState.slots.location && conversationState.slots.facility_type;
+                    // Check missing core info first (location, facility_type, neighborhood)
+                    const coreSlots = ['location', 'facility_type', 'neighborhood'];
+                    const missingCoreSlots = coreSlots.filter(slot => conversationState.slots[slot] === null);
+                    
+                    if (missingCoreSlots.length > 0) {
+                        const question = askForMissingInfo(missingCoreSlots);
+                        if (question) {
+                            addMessage(question, 'bot');
+                            return;
+                        }
+                    }
+                    
+                    // Now check weather if we have location + facility_type + neighborhood (or user skipped neighborhood)
+                    const hasBasicInfo = conversationState.slots.location && conversationState.slots.facility_type && 
+                                        (conversationState.slots.neighborhood !== null);
                     
                     if (hasBasicInfo && !conversationState.weatherChecked && 
                         OUTDOOR_FACILITIES.includes(conversationState.slots.facility_type)) {
@@ -1630,10 +1648,12 @@
                         addMessage('מעולה! מחפש לך מתקן מקורה... 🏢', 'bot');
                     }
                     
-                    const missingSlots = getMissingSlots();
+                    // Check remaining optional slots (time, accessibility, parking, lighting)
+                    const optionalSlots = ['time', 'accessibility', 'parking', 'lighting'];
+                    const missingOptionalSlots = optionalSlots.filter(slot => conversationState.slots[slot] === null);
                     
-                    if (missingSlots.length > 0) {
-                        const question = askForMissingInfo(missingSlots);
+                    if (missingOptionalSlots.length > 0) {
+                        const question = askForMissingInfo(missingOptionalSlots);
                         if (question) {
                             addMessage(question, 'bot');
                             return;
@@ -1787,7 +1807,7 @@
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 SportsBuddy Code Updated - Version 2.5 - NEIGHBORHOOD SEARCH ADDED!'); // Latest update
+            console.log('🚀 SportsBuddy Code Updated - Version 2.6 - NEIGHBORHOOD FLOW FIXED!'); // Latest update
             console.log('📍 Data URL:', CONFIG.DATA_URL);
             
             // Update connection status immediately
