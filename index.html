@@ -1333,15 +1333,50 @@
         function getNeighborhoodsForCity(cityName) {
             if (!sportsData || !cityName) return [];
             
+            console.log('🏘️ Getting neighborhoods for city:', cityName);
+            
+            // Filter facilities by city
+            const cityFacilities = sportsData.filter(f => 
+                f['ישוב'] && f['ישוב'].toLowerCase().includes(cityName.toLowerCase())
+            );
+            
+            console.log('🏢 Found facilities in city:', cityFacilities.length);
+            
+            // Extract unique neighborhoods, excluding invalid ones
             const neighborhoods = [...new Set(
-                sportsData
-                    .filter(f => f['ישוב'] && f['ישוב'].toLowerCase().includes(cityName.toLowerCase()))
+                cityFacilities
                     .map(f => f['שכונה-רובע'])
-                    .filter(n => n && n !== 'לא ידוע' && String(n).trim() !== '')
+                    .filter(n => {
+                        if (!n) return false;
+                        const neighborhood = String(n).trim();
+                        
+                        // Exclude these values
+                        const excludeValues = [
+                            'לא ידוע', 'לא קיים', 'לא רלוונטי', 'לא נתון', 
+                            'ללא', 'אין', 'לא זמין', 'לא מוגדר', '-', 'לא מפורט',
+                            '', 'null', 'undefined', 'נ/א'
+                        ];
+                        
+                        const isExcluded = excludeValues.some(exclude => 
+                            neighborhood.toLowerCase() === exclude.toLowerCase()
+                        );
+                        
+                        return !isExcluded && neighborhood.length > 1;
+                    })
                     .map(n => String(n).trim())
             )];
             
-            return neighborhoods.slice(0, 8); // Return top 8 neighborhoods
+            console.log('🗂️ Unique neighborhoods found:', neighborhoods);
+            
+            // Sort neighborhoods alphabetically in Hebrew
+            neighborhoods.sort((a, b) => a.localeCompare(b, 'he'));
+            
+            // Limit to reasonable number for display
+            const maxNeighborhoods = 15;
+            const result = neighborhoods.slice(0, maxNeighborhoods);
+            
+            console.log('📋 Final neighborhood list:', result);
+            return result;
         }
 
         function askForMissingInfo(missingSlots) {
@@ -1364,17 +1399,31 @@
             }
             if (missingSlots.includes('neighborhood')) {
                 const cityName = conversationState.slots.location;
-                let neighborhoodPrompt = `באיזה שכונה או אזור ב${cityName}? (לא חובה - אפשר לדלג) 🏘️<br><br>`;
+                let neighborhoodPrompt = `באיזה שכונה או אזור ב${cityName}? 🏘️<br><br>`;
                 
                 const availableNeighborhoods = getNeighborhoodsForCity(cityName);
                 if (availableNeighborhoods.length > 0) {
-                    neighborhoodPrompt += '💡 <strong>שכונות/אזורים זמינים:</strong><br>';
-                    const examples = availableNeighborhoods.slice(0, 6);
-                    neighborhoodPrompt += examples.map(n => `• ${n}`).join('<br>');
-                    neighborhoodPrompt += '<br><br>';
+                    neighborhoodPrompt += '📍 <strong>שכונות/אזורים זמינים במערכת:</strong><br>';
+                    
+                    // Group neighborhoods into columns for better display
+                    const chunked = [];
+                    for (let i = 0; i < availableNeighborhoods.length; i += 3) {
+                        chunked.push(availableNeighborhoods.slice(i, i + 3));
+                    }
+                    
+                    chunked.forEach(chunk => {
+                        neighborhoodPrompt += chunk.map(n => `• ${n}`).join(' | ') + '<br>';
+                    });
+                    
+                    neighborhoodPrompt += '<br>';
+                } else {
+                    neighborhoodPrompt += '⚠️ <strong>לא נמצאו שכונות ספציפיות במערכת עבור ${cityName}</strong><br>';
                 }
                 
-                neighborhoodPrompt += '💬 <strong>דוגמאות:</strong> "מרכז העיר", "צפון", "דרום" או "כל שכונה"<br>';
+                neighborhoodPrompt += '💬 <strong>איך לענות:</strong><br>';
+                neighborhoodPrompt += '• כתוב את שם השכונה מהרשימה למעלה<br>';
+                neighborhoodPrompt += '• או כתוב "מרכז", "צפון", "דרום", "מזרח", "מערב"<br>';
+                neighborhoodPrompt += '• או "כל שכונה" / "דלג" לחיפוש בכל העיר<br><br>';
                 neighborhoodPrompt += '⏭️ <strong>לדילוג:</strong> כתוב "דלג" או "כל שכונה"';
                 
                 return neighborhoodPrompt;
@@ -1894,7 +1943,7 @@
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 SportsBuddy Code Updated - Version 2.9 - SMART RESPONSES & HEBREW ONLY!'); // Latest update
+            console.log('🚀 SportsBuddy Code Updated - Version 3.0 - NEIGHBORHOOD SELECTION ENHANCED!'); // Latest update
             console.log('📍 Data URL:', CONFIG.DATA_URL);
             
             // Update connection status immediately
