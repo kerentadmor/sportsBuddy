@@ -904,10 +904,20 @@
         function findNeighborhoodInData(message, cityName = null) {
             if (!sportsData || sportsData.length === 0) return null;
             
-            const msgLower = message.toLowerCase();
+            const msgLower = message.toLowerCase().trim();
             
-            // Skip if message is too short or generic
-            if (msgLower.length < 3 || msgLower.includes('אני') || msgLower.includes('מחפש')) {
+            console.log('🔍 Looking for neighborhood in:', msgLower, 'with city context:', cityName);
+            
+            // Skip if message is too short or generic or looks like city name
+            if (msgLower.length < 3 || 
+                msgLower.includes('אני') || 
+                msgLower.includes('מחפש') ||
+                msgLower.includes('רוצה') ||
+                msgLower.includes('צריך') ||
+                msgLower === 'תל אביב' ||
+                msgLower === 'ירושלים' ||
+                msgLower === 'חיפה') {
+                console.log('🚫 Skipping neighborhood search - generic or city name');
                 return null;
             }
             
@@ -927,6 +937,8 @@
                     .map(n => String(n).trim())
             )];
             
+            console.log('🏘️ Available neighborhoods:', neighborhoods.slice(0, 5));
+            
             // 1. Exact match (only for longer strings)
             for (const neighborhood of neighborhoods) {
                 if (msgLower === neighborhood.toLowerCase() && msgLower.length > 3) {
@@ -935,20 +947,16 @@
                 }
             }
             
-            // 2. Partial match (user input contained in neighborhood name) - minimum 4 chars
-            if (msgLower.length >= 4) {
-                for (const neighborhood of neighborhoods) {
-                    if (neighborhood.toLowerCase().includes(msgLower)) {
-                        console.log('🔍 Partial neighborhood match:', neighborhood);
-                        return neighborhood;
-                    }
-                }
-            }
+            // 2. REMOVED partial match to avoid false positives like "תל אביב" → "מרינה תל אביב"
             
-            // 3. Reverse partial match (neighborhood name contained in user input) - minimum 4 chars
-            if (msgLower.length >= 4) {
+            // 3. Reverse partial match (neighborhood name contained in user input) - minimum 5 chars and must be specific
+            if (msgLower.length >= 5) {
                 for (const neighborhood of neighborhoods) {
-                    if (msgLower.includes(neighborhood.toLowerCase()) && neighborhood.length >= 4) {
+                    if (msgLower.includes(neighborhood.toLowerCase()) && 
+                        neighborhood.length >= 5 && 
+                        !neighborhood.toLowerCase().includes('תל אביב') &&
+                        !neighborhood.toLowerCase().includes('ירושלים') &&
+                        !neighborhood.toLowerCase().includes('חיפה')) {
                         console.log('🔍 Reverse partial neighborhood match:', neighborhood);
                         return neighborhood;
                     }
@@ -981,6 +989,7 @@
                 }
             }
             
+            console.log('❌ No neighborhood match found');
             return null;
         }
 
@@ -1125,9 +1134,16 @@
             }
             
             if (!conversationState.slots.neighborhood) {
-                // If we have a location, search neighborhood within that city
-                const contextLocation = entities.location || conversationState.slots.location;
-                entities.neighborhood = findNeighborhoodInData(message, contextLocation);
+                // ONLY search for neighborhood if we're NOT answering the location question
+                // and we're NOT in a generic search phrase
+                const isLocationAnswer = conversationState.slots.location === null && entities.location;
+                const isGenericSearch = msgLower.includes('מחפש') || msgLower.includes('רוצה') || msgLower.includes('צריך');
+                
+                if (!isLocationAnswer && !isGenericSearch) {
+                    // If we have a location, search neighborhood within that city
+                    const contextLocation = entities.location || conversationState.slots.location;
+                    entities.neighborhood = findNeighborhoodInData(message, contextLocation);
+                }
             }
             
             if (!conversationState.slots.time) {
@@ -1833,7 +1849,7 @@
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 SportsBuddy Code Updated - Version 2.7 - NEIGHBORHOOD DETECTION FIXED!'); // Latest update
+            console.log('🚀 SportsBuddy Code Updated - Version 2.8 - FALSE NEIGHBORHOOD DETECTION FIXED!'); // Latest update
             console.log('📍 Data URL:', CONFIG.DATA_URL);
             
             // Update connection status immediately
