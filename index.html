@@ -313,6 +313,49 @@
             font-size: 13px;
         }
 
+        .neighborhood-buttons, .direction-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .neighborhood-btn, .direction-btn, .skip-btn {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 2px solid #4CAF50;
+            color: #2c3e50;
+            padding: 8px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s;
+            direction: rtl;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .neighborhood-btn:hover, .direction-btn:hover {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .skip-btn {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            border-color: #ff9800;
+            color: white;
+            font-size: 13px;
+            padding: 10px 16px;
+        }
+
+        .skip-btn:hover {
+            background: linear-gradient(135deg, #f57c00, #ef6c00);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+        }
+
         .connection-status {
             padding: 8px 12px;
             border-radius: 6px;
@@ -1399,34 +1442,7 @@
             }
             if (missingSlots.includes('neighborhood')) {
                 const cityName = conversationState.slots.location;
-                let neighborhoodPrompt = `באיזה שכונה או אזור ב${cityName}? 🏘️<br><br>`;
-                
-                const availableNeighborhoods = getNeighborhoodsForCity(cityName);
-                if (availableNeighborhoods.length > 0) {
-                    neighborhoodPrompt += '📍 <strong>שכונות/אזורים זמינים במערכת:</strong><br>';
-                    
-                    // Group neighborhoods into columns for better display
-                    const chunked = [];
-                    for (let i = 0; i < availableNeighborhoods.length; i += 3) {
-                        chunked.push(availableNeighborhoods.slice(i, i + 3));
-                    }
-                    
-                    chunked.forEach(chunk => {
-                        neighborhoodPrompt += chunk.map(n => `• ${n}`).join(' | ') + '<br>';
-                    });
-                    
-                    neighborhoodPrompt += '<br>';
-                } else {
-                    neighborhoodPrompt += '⚠️ <strong>לא נמצאו שכונות ספציפיות במערכת עבור ${cityName}</strong><br>';
-                }
-                
-                neighborhoodPrompt += '💬 <strong>איך לענות:</strong><br>';
-                neighborhoodPrompt += '• כתוב את שם השכונה מהרשימה למעלה<br>';
-                neighborhoodPrompt += '• או כתוב "מרכז", "צפון", "דרום", "מזרח", "מערב"<br>';
-                neighborhoodPrompt += '• או "כל שכונה" / "דלג" לחיפוש בכל העיר<br><br>';
-                neighborhoodPrompt += '⏭️ <strong>לדילוג:</strong> כתוב "דלג" או "כל שכונה"';
-                
-                return neighborhoodPrompt;
+                return createNeighborhoodSelectionMessage(cityName);
             }
             
             // Handle optional slots
@@ -1443,6 +1459,168 @@
                 return 'האם יש צורך בתאורה? (כן/לא) 💡';
             }
             return null;
+        }
+
+        function createNeighborhoodSelectionMessage(cityName) {
+            const availableNeighborhoods = getNeighborhoodsForCity(cityName);
+            
+            let message = `באיזה שכונה או אזור ב${cityName}? 🏘️<br><br>`;
+            
+            if (availableNeighborhoods.length > 0) {
+                message += '📍 <strong>בחר שכונה:</strong><br><br>';
+                
+                // Create clickable buttons for neighborhoods
+                const neighborhoodButtons = availableNeighborhoods.map(neighborhood => 
+                    `<button class="neighborhood-btn" onclick="selectNeighborhood('${neighborhood}')">${neighborhood}</button>`
+                ).join(' ');
+                
+                message += `<div class="neighborhood-buttons">${neighborhoodButtons}</div><br>`;
+                
+                // Add general direction buttons
+                message += '<strong>או בחר כיוון כללי:</strong><br><br>';
+                const directionButtons = [
+                    { name: 'מרכז העיר', value: 'מרכז' },
+                    { name: 'צפון', value: 'צפון' },
+                    { name: 'דרום', value: 'דרום' },
+                    { name: 'מזרח', value: 'מזרח' },
+                    { name: 'מערב', value: 'מערב' }
+                ].map(dir => 
+                    `<button class="direction-btn" onclick="selectNeighborhood('${dir.value}')">${dir.name}</button>`
+                ).join(' ');
+                
+                message += `<div class="direction-buttons">${directionButtons}</div><br>`;
+                
+                // Add skip option
+                message += '<strong>או:</strong><br>';
+                message += '<button class="skip-btn" onclick="selectNeighborhood(\'any\')">🌍 כל השכונות</button>';
+                
+            } else {
+                message += '⚠️ <strong>לא נמצאו שכונות ספציפיות במערכת</strong><br><br>';
+                message += '<button class="skip-btn" onclick="selectNeighborhood(\'any\')">🌍 המשך לחיפוש בכל העיר</button>';
+            }
+            
+            return message;
+        }
+
+        // Function to handle neighborhood selection
+        function selectNeighborhood(neighborhoodValue) {
+            console.log('🏘️ Neighborhood selected:', neighborhoodValue);
+            
+            // Update the conversation state
+            conversationState.slots.neighborhood = neighborhoodValue;
+            
+            // Add user message to show what was selected
+            if (neighborhoodValue === 'any') {
+                addMessage('כל השכונות', 'user');
+            } else {
+                addMessage(neighborhoodValue, 'user');
+            }
+            
+            // Continue the conversation flow
+            setTimeout(() => {
+                processNeighborhoodSelection();
+            }, 500);
+        }
+
+        async function processNeighborhoodSelection() {
+            // Check missing core info first (location, facility_type, neighborhood)
+            const coreSlots = ['location', 'facility_type', 'neighborhood'];
+            const missingCoreSlots = coreSlots.filter(slot => conversationState.slots[slot] === null);
+            
+            console.log('🔍 Core slots status after neighborhood:', {
+                location: conversationState.slots.location,
+                facility_type: conversationState.slots.facility_type,
+                neighborhood: conversationState.slots.neighborhood,
+                missingCoreSlots: missingCoreSlots
+            });
+            
+            if (missingCoreSlots.length > 0) {
+                const question = askForMissingInfo(missingCoreSlots);
+                if (question) {
+                    addMessage(question, 'bot');
+                    return;
+                }
+            }
+            
+            // Now check weather if we have location + facility_type + neighborhood (or user skipped neighborhood)
+            const hasBasicInfo = conversationState.slots.location && conversationState.slots.facility_type && 
+                                (conversationState.slots.neighborhood !== null);
+            
+            console.log('🌤️ Weather check after neighborhood:', {
+                hasBasicInfo: hasBasicInfo,
+                weatherChecked: conversationState.weatherChecked,
+                facilityType: conversationState.slots.facility_type,
+                isOutdoor: OUTDOOR_FACILITIES.includes(conversationState.slots.facility_type)
+            });
+            
+            if (hasBasicInfo && !conversationState.weatherChecked && 
+                OUTDOOR_FACILITIES.includes(conversationState.slots.facility_type)) {
+                
+                addMessage('רגע אחד, בודק את מזג האוויר... 🌤️', 'bot');
+                showTypingIndicator();
+                
+                const weatherData = await getWeatherData(conversationState.slots.location);
+                conversationState.weatherData = weatherData;
+                conversationState.weatherChecked = true;
+                
+                hideTypingIndicator();
+                
+                if (weatherData) {
+                    const contextualFeedback = getContextualWeatherFeedback(weatherData);
+                    if (contextualFeedback) {
+                        addMessage(contextualFeedback, 'bot');
+                    }
+                } else {
+                    addMessage('לא הצלחתי לקבל נתוני מזג אוויר, אבל אמשיך לחפש מתקנים! 🌤️', 'bot');
+                }
+            }
+            
+            // Check remaining optional slots (time, accessibility, parking, lighting)
+            const optionalSlots = ['time', 'accessibility', 'parking', 'lighting'];
+            const missingOptionalSlots = optionalSlots.filter(slot => conversationState.slots[slot] === null);
+            
+            if (missingOptionalSlots.length > 0) {
+                const question = askForMissingInfo(missingOptionalSlots);
+                if (question) {
+                    addMessage(question, 'bot');
+                    return;
+                }
+            }
+            
+            // If we got here, we have all the info - search for facilities
+            const facilities = filterFacilities();
+            
+            // Debug: show search criteria
+            console.log('🔍 Final search with slots:', conversationState.slots);
+            if (conversationState.slots.neighborhood && conversationState.slots.neighborhood !== 'any') {
+                console.log(`🔍 Searching with neighborhood filter: "${conversationState.slots.neighborhood}"`);
+            }
+            
+            if (facilities.length > 0) {
+                displayPaginatedResults(facilities, true);
+            } else {
+                addMessage('לא מצאתי מתקנים שמתאימים לבקשתך. 😔<br><br>💡 נסה לשנות את הקריטריונים או לכתוב בקשה אחרת.', 'bot');
+            }
+            
+            // Reset conversation state
+            conversationState = {
+                intent: null,
+                slots: {
+                    location: null,
+                    neighborhood: null,
+                    facility_type: null,
+                    accessibility: null,
+                    parking: null,
+                    lighting: null,
+                    time: null
+                },
+                weatherChecked: false,
+                weatherData: null,
+                searchResults: [],
+                currentPage: 0,
+                resultsPerPage: 3,
+                showMorePerPage: 10
+            };
         }
 
         function getAvailableFacilityTypes() {
@@ -1943,7 +2121,7 @@
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 SportsBuddy Code Updated - Version 3.0 - NEIGHBORHOOD SELECTION ENHANCED!'); // Latest update
+            console.log('🚀 SportsBuddy Code Updated - Version 3.1 - CLICKABLE NEIGHBORHOOD BUTTONS!'); // Latest update
             console.log('📍 Data URL:', CONFIG.DATA_URL);
             
             // Update connection status immediately
@@ -1958,6 +2136,7 @@
         window.sendMessage = sendMessage;
         window.startNewConversation = startNewConversation;
         window.showMoreResults = showMoreResults;
+        window.selectNeighborhood = selectNeighborhood;
     </script>
 </body>
 </html>
