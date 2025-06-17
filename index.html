@@ -1642,7 +1642,7 @@
                 
                 if (conversationState.slots.neighborhood && conversationState.slots.neighborhood !== 'any') {
                     const targetNeighborhood = conversationState.slots.neighborhood.toLowerCase();
-                    const facilityNeighborhood = (facility['שכונה-רובע'] || '').toLowerCase(); // Fixed: use bracket notation
+                    const facilityNeighborhood = (facility['שכונה'] || '').toLowerCase(); // Changed to 'שכונה'
                     
                     // Check if neighborhood matches
                     const neighborhoodMatches = 
@@ -1651,7 +1651,7 @@
                         facilityNeighborhood === targetNeighborhood;
                     
                     // If no match, also allow "לא ידוע" facilities as fallback
-                    if (!neighborhoodMatches && facility['שכונה-רובע'] !== 'לא ידוע') { // Fixed: use bracket notation
+                    if (!neighborhoodMatches && facility['שכונה'] !== 'לא ידוע') { // Changed to 'שכונה'
                         return false;
                     }
                 }
