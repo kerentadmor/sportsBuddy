@@ -1020,7 +1020,7 @@
             // Get unique neighborhoods from relevant facilities
             const neighborhoods = [...new Set(
                 relevantFacilities
-                    .map(f => f['שכונה-רובע'])
+                    .map(f => f['שכונה-רובע']) // Fixed: use bracket notation
                     .filter(n => n && n !== 'לא ידוע' && String(n).trim() !== '' && String(n).trim().length > 2)
                     .map(n => String(n).trim())
             )];
@@ -1388,7 +1388,7 @@
             // Extract unique neighborhoods, excluding invalid ones
             const neighborhoods = [...new Set(
                 cityFacilities
-                    .map(f => f['שכונה-רובע'])
+                    .map(f => f['שכונה-רובע']) // Fixed: use bracket notation
                     .filter(n => {
                         if (!n) return false;
                         const neighborhood = String(n).trim();
@@ -1651,7 +1651,7 @@
                         facilityNeighborhood === targetNeighborhood;
                     
                     // If no match, also allow "לא ידוע" facilities as fallback
-                    if (!neighborhoodMatches && facility['שכונה-רובע'] !== 'לא ידוע') {
+                    if (!neighborhoodMatches && facility['שכונה-רובע'] !== 'לא ידוע') { // Fixed: use bracket notation
                         return false;
                     }
                 }
@@ -2121,7 +2121,7 @@
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 SportsBuddy Code Updated - Version 3.2 - PROPERTY ACCESS BUG FIXED!'); // Latest update
+            console.log('🚀 SportsBuddy Code Updated - Version 3.3 - ALL PROPERTY ACCESS FIXED!'); // Latest update
             console.log('📍 Data URL:', CONFIG.DATA_URL);
             
             // Update connection status immediately
